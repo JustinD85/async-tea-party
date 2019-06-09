@@ -8,19 +8,16 @@
 (def random-add
   (fn []
     (reduce + (conj [] (repeat 1 (rand-int 100000))))))
-;; alt syntax
-;;(defn random-add []
-;; (reduce + (conj [] (repeat 1 (rand-int 100000)))))
 
 (defn request-google-tea-service []
   (async/go
     (random-add)
-    (async/>! google-tea-service-chan "tea compliments of google")))
+    (async/>! google-tea-service-chan "Tea compliments of Google")))
 
 (defn request-yahoo-tea-service []
   (async/go
     (random-add)
-    (async/>! yahoo-tea-service-chan "tea compliments of yahoo")))
+    (async/>! yahoo-tea-service-chan "Tea compliments of Yahoo")))
 
 (defn request-tea []
   (request-google-tea-service)
@@ -28,6 +25,11 @@
   (async/go (let [[v] (async/alts! [google-tea-service-chan
                                     yahoo-tea-service-chan])]
               (async/>! result-chan v))))
+
+(defn -main [& args]
+  (println "Requesting Tea!!")
+  (request-tea)
+  (println (async/<!! result-chan)))
 
 ;; Section 1
 ;; example opening a buffered channel
