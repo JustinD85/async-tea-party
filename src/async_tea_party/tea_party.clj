@@ -1,4 +1,5 @@
 (ns async-tea-party.tea-party
+  (:gen-class)
   (:require [clojure.core.async :as async]))
 
 (def result-chan (async/chan 10))
