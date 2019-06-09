@@ -9,4 +9,10 @@
 
 (async/<!! tea-channel)
 
+;can still get values from channel before it was closed
 (async/close! tea-channel)
+
+(defn example-async []
+(let [tea-channel-2 (async/chan)]
+  (async/go (async/>! tea-channel-2 :cup-of-tea-1))
+  (async/go (println "Thanks for the" (async/<! tea-channel-2)))))
