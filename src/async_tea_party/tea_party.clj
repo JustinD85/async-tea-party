@@ -1,6 +1,7 @@
 (ns async-tea-party.tea-party
   (:require [clojure.core.async :as async]))
 
+(def result-chan (async/chan 10))
 (def google-tea-service-chan (async/chan 10))
 (def yahoo-tea-service-chan (async/chan 10))
 
@@ -26,7 +27,8 @@
   (request-yahoo-tea-service)
   (async/go (let [[v] (async/alts! [google-tea-service-chan
                                     yahoo-tea-service-chan])]
-              (println v))))
+              (async/>! result-chan v))))
+
 ;; Section 1
 ;; example opening a buffered channel
 ;; (def tea-channel (async/chan 20))
