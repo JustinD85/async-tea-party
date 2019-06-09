@@ -1,6 +1,33 @@
 (ns async-tea-party.tea-party
   (:require [clojure.core.async :as async]))
 
+(def google-tea-service-chan (async/chan 10))
+(def yahoo-tea-service-chan (async/chan 10))
+
+(def random-add
+  (fn []
+    (reduce + (conj [] (repeat 1 (rand-int 100000))))))
+;; alt syntax
+;;(defn random-add []
+;; (reduce + (conj [] (repeat 1 (rand-int 100000)))))
+
+(defn request-google-tea-service []
+  (async/go
+    (random-add)
+    (async/>! google-tea-service-chan "tea compliments of google")))
+
+(defn request-yahoo-tea-service []
+  (async/go
+    (random-add)
+    (async/>! yahoo-tea-service-chan "tea compliments of yahoo")))
+
+(defn request-tea []
+  (request-google-tea-service)
+  (request-yahoo-tea-service)
+  (async/go (let [[v] (async/alts! [google-tea-service-chan
+                                    yahoo-tea-service-chan])]
+              (println v))))
+;; Section 1
 ;; example opening a buffered channel
 ;; (def tea-channel (async/chan 20))
 
@@ -21,28 +48,29 @@
 ;; example usage of closing a channel
 ;; (async/close! tea-channel)
 
+;; Section 2
 ;; example function taking value from channel, non-blocking
-(defn example-async []
-  (let [tea-channel-2 (async/chan)]
-    (async/go (async/>! tea-channel-2 :cup-of-tea-1))
-    (async/go (println "Thanks for the" (async/<! tea-channel-2)))))
+;; (defn example-async []
+;;   (let [tea-channel-2 (async/chan)]
+;;     (async/go (async/>! tea-channel-2 :cup-of-tea-1))
+;;     (async/go (println "Thanks for the" (async/<! tea-channel-2)))))
 
-;; example background service worker
-(defn example-loop []
-  (let [tea-channel (async/chan 10)]
-    (async/go-loop []
-      (println "Thanks for the" (async/<! tea-channel))
-      (recur))))
+;; ;; example background service worker
+;; (defn example-loop []
+;;   (let [tea-channel (async/chan 10)]
+;;     (async/go-loop []
+;;       (println "Thanks for the" (async/<! tea-channel))
+;;       (recur))))
 
-;; multi-channel usage
-(def tea-channel (async/chan 10))
-(def milk-channel (async/chan 10))
-(def sugar-channel (async/chan 10))
+;; ;; multi-channel usage
+;; (def tea-channel (async/chan 10))
+;; (def milk-channel (async/chan 10))
+;; (def sugar-channel (async/chan 10))
 
-;; service worker that will print a message given to from multi sources
-(async/go-loop []
-  (let [[v ch] (async/alts! [tea-channel
-                             milk-channel
-                             sugar-channel])]
-    (println "Got " v " from " ch)
-    (recur)))
+;; ;; service worker that will print a message given to from multi sources
+;; (async/go-loop []
+;;   (let [[v ch] (async/alts! [tea-channel
+;;                              milk-channel
+;;                              sugar-channel])]
+;;     (println "Got " v " from " ch)
+;;     (recur)))
