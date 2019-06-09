@@ -16,3 +16,8 @@
 (let [tea-channel-2 (async/chan)]
   (async/go (async/>! tea-channel-2 :cup-of-tea-1))
   (async/go (println "Thanks for the" (async/<! tea-channel-2)))))
+
+(defn example-loop []
+  (async/go-loop []
+    (println "Thanks for the" (async/<! tea-channel))
+    (recur)))
