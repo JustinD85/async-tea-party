@@ -23,13 +23,26 @@
 
 ;; example function taking value from channel, non-blocking
 (defn example-async []
-(let [tea-channel-2 (async/chan)]
-  (async/go (async/>! tea-channel-2 :cup-of-tea-1))
-  (async/go (println "Thanks for the" (async/<! tea-channel-2)))))
+  (let [tea-channel-2 (async/chan)]
+    (async/go (async/>! tea-channel-2 :cup-of-tea-1))
+    (async/go (println "Thanks for the" (async/<! tea-channel-2)))))
 
 ;; example background service worker
 (defn example-loop []
-  (async/go-loop []
-    (println "Thanks for the" (async/<! tea-channel))
-    (recur)))
+  (let [tea-channel (async/chan 10)]
+    (async/go-loop []
+      (println "Thanks for the" (async/<! tea-channel))
+      (recur))))
 
+;; multi-channel usage
+(def tea-channel (async/chan 10))
+(def milk-channel (async/chan 10))
+(def sugar-channel (async/chan 10))
+
+;; service worker that will print a message given to from multi sources
+(async/go-loop []
+  (let [[v ch] (async/alts! [tea-channel
+                             milk-channel
+                             sugar-channel])]
+    (println "Got " v " from " ch)
+    (recur)))
